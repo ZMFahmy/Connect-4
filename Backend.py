@@ -110,12 +110,9 @@ class Connect4:
 class AI:
     def __init__(self, depth, use_alpha_beta):
         self.depth = depth
-       # self.use_alpha_beta = use_alpha_beta
 
     def get_move(self, game):
-        #if self.use_alpha_beta:
-        #    return self.minimax_alpha_beta(game, self.depth, -np.Inf, np.Inf, True)[0]
-       # else:
+
         return self.minimax(game, self.depth, True)[0]
 
     def minimax(self, state, depth, maximizing_player):
