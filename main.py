@@ -1,5 +1,7 @@
 from game_board import GameBoard
+import minimax_with_pruning
 
+"""
 board = GameBoard()
 
 board.insert_disc('r', 0)
@@ -18,8 +20,12 @@ i = 1
 print("Child states ")
 for child in board.child_states:
     print(f"child no {i}")
-    child_board = GameBoard(state=child)
+    state = child["state"]
+    child_board = GameBoard(state=state)
     child_board.print_board()
     i += 1
 
 print(board.get_state_as_2d_list())
+"""
+
+minimax_with_pruning.get_next_move('c', 'h')

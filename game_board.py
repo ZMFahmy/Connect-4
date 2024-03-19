@@ -42,7 +42,11 @@ class GameBoard:
             if self.state[i] == ' ':
                 original_state = self.state
                 self.insert_disc(next_player, i)
-                self.child_states.append(self.state)
+                child_node = {
+                    "state": self.state,
+                    "column_index": i,
+                }
+                self.child_states.append(child_node)
                 self.state = original_state
 
     def get_state_as_2d_list(self):
