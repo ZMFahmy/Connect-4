@@ -44,3 +44,13 @@ class GameBoard:
                 self.insert_disc(next_player, i)
                 self.child_states.append(self.state)
                 self.state = original_state
+
+    def get_state_as_2d_list(self):
+        arr = []
+        for i in range(6):
+            row_start = i * 7
+            row = []
+            for j in range(7):
+                row.append(self.state[row_start + j])
+            arr.append(row)
+        return arr

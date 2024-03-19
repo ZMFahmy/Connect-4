@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Connect4:
     def __init__(self, width=7, height=6):
         self.width = width

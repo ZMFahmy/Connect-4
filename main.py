@@ -21,3 +21,5 @@ for child in board.child_states:
     child_board = GameBoard(state=child)
     child_board.print_board()
     i += 1
+
+print(board.get_state_as_2d_list())
