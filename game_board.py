@@ -50,6 +50,22 @@ class GameBoard:
                 }
                 self.child_states.append(child_node)
                 self.state = original_state
+    def get_children_states_alphaBeta(self, next_player):
+        positions=[]
+        for i in range(7):
+            if self.state[i] == ' ':
+                original_state = self.state
+                self.insert_disc(next_player, i)
+                child_node = {
+                    "state": self.state,
+                    "column_index": i,
+                }
+                self.child_states.append(self.state)
+                positions.append(i)
+
+                self.state = original_state
+        return positions
+
 
     def get_state_as_2d_list(self):
         arr = []
