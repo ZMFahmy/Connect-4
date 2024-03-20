@@ -1,12 +1,12 @@
 import random
 
-import tree_gui
+# import tree_gui
 from game_board import GameBoard
 
 chance_nodes_counter = 1
 
 
-class Node:7
+class Node:
 
     def __init__(self, optimizer_type, state, current_player_color, opponent_player_color, height):
         self.optimizer_type = optimizer_type

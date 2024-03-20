@@ -65,10 +65,9 @@ def heuristic_score(state, current_player_color, opponent_player_color):
     current_player_score = 0
     opponent_player_score = 0
 
-    # Define weights for different patterns
     weights = {
         "2-in-a-row": 1,
-        "3-in-a-row": 10,
+        "3-in-a-row": 4,
         "4-in-a-row": 1000,
         "center": 2,
         "edge": 1
@@ -78,36 +77,31 @@ def heuristic_score(state, current_player_color, opponent_player_color):
     for i in range(6):
         for j in range(7):
             color = state.get_position(i, j)
-            if color == current_player_color:
-                # Check horizontal patterns
-                if j <= 3:
-                    current_player_score += weights["2-in-a-row"]
-                    if j <= 2:
-                        current_player_score += weights["3-in-a-row"]
-                        if j == 0:
-                            current_player_score += weights["4-in-a-row"]
-                # Check vertical patterns
-                if i <= 2:
-                    current_player_score += weights["2-in-a-row"]
-                    if i <= 1:
-                        current_player_score += weights["3-in-a-row"]
-                        if i == 0:
-                            current_player_score += weights["4-in-a-row"]
-            elif color == opponent_player_color:
-                # Check horizontal patterns
-                if j <= 3:
-                    opponent_player_score += weights["2-in-a-row"]
-                    if j <= 2:
-                        opponent_player_score += weights["3-in-a-row"]
-                        if j == 0:
-                            opponent_player_score += weights["4-in-a-row"]
-                # Check vertical patterns
-                if i <= 2:
-                    opponent_player_score += weights["2-in-a-row"]
-                    if i <= 1:
-                        opponent_player_score += weights["3-in-a-row"]
-                        if i == 0:
-                            opponent_player_score += weights["4-in-a-row"]
+            consecutive_count = 0  # Track consecutive cells of the same color
+
+            # Check horizontal patterns
+            for k in range(j, min(j + 4, 7)):
+                if state.get_position(i, k) == color:
+                    consecutive_count += 1
+                else:
+                    consecutive_count = 0
+                if consecutive_count == 2:
+                    current_player_score += weights["2-in-a-row"] if color == current_player_color else -weights["2-in-a-row"]
+                elif consecutive_count == 3:
+                    current_player_score += weights["3-in-a-row"] if color == current_player_color else -weights["3-in-a-row"]
+
+            # Check vertical patterns (similar logic)
+            consecutive_count = 0
+            for k in range(i, min(i + 4, 6)):
+                if state.get_position(k, j) == color:
+                    consecutive_count += 1
+                else:
+                    consecutive_count = 0
+                if consecutive_count == 2:
+                    current_player_score += weights["2-in-a-row"] if color == current_player_color else -weights["2-in-a-row"]
+                elif consecutive_count == 3:
+                    current_player_score += weights["3-in-a-row"] if color == current_player_color else -weights["3-in-a-row"]
+
 
     # Diagonal patterns (/ and \)
     for i in range(3):
@@ -226,34 +220,6 @@ def Minimax(state):
     child, utility = Maximize(root, -1000000, 1000000)
     return child
 
-p = GameBoard()
 
 
-p.print_board()
 
-p.insert_disc('r',0)
-p.insert_disc('r',0)
-# p.insert_disc('y',3)
-p.insert_disc('r',0)
-p.insert_disc('r',1)
-# p.insert_disc('r',1)
-# p.insert_disc('y',3)
-p.insert_disc('r',0)
-# p.insert_disc('r',3)
-p.insert_disc('r',2)
-p.insert_disc('r',6)
-# p.insert_disc('y',3)
-# p.insert_disc('r',6)
-# p.insert_disc('r',4)
-# p.insert_disc('r',4)
-# p.insert_disc('r',5)
-# p.insert_disc('r',4)
-
-# p.insert_disc('y',3)
-# p.insert_disc('r',3)
-
-g=GameBoard()
-
-g.state=Minimax(p.state)
-
-g.print_board()
