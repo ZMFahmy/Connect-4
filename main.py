@@ -1,5 +1,6 @@
+import tree_gui
 from game_board import GameBoard
-import minimax_with_pruning
+import expectiminimax
 
 """
 board = GameBoard()
@@ -28,4 +29,4 @@ for child in board.child_states:
 print(board.get_state_as_2d_list())
 """
 
-minimax_with_pruning.get_next_move('c', 'h')
+expectiminimax.get_next_move('c', 'h')

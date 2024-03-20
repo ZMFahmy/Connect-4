@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
+import networkx
 import networkx as nx
+from expectiminimax import Node
 
 
 def draw_expectiminimax_tree():
@@ -40,5 +42,42 @@ def draw_expectiminimax_tree():
     plt.show()
 
 
-if __name__ == "__main__":
-    draw_expectiminimax_tree()
+def get_child_nodes(node, layers, edges):
+    chance_nodes = node.chance_nodes
+
+    if chance_nodes == []:
+        return
+
+    for c in chance_nodes:
+        layers[c["height"]].append(c["name"])
+        edges.append((node.get_printable_state(), c["name"]))
+        child_states = c["states"]
+        for s in child_states:
+            get_child_nodes(s["node"], layers, edges)
+            edges.append((c["name"], s["node"].get_printable_state()))
+
+
+def construct_expectiminimax_tree(root, max_height):
+    G = nx.Graph()
+    layers = []
+    edges = []
+    pos = {}
+
+    for i in range(2 * max_height):
+        layers.append([])
+
+    layers[0].append(root.get_printable_state())
+    get_child_nodes(root, layers, edges)
+
+    for i, layer in enumerate(layers):
+        G.add_nodes_from(layer)
+        for j, node in enumerate(layer):
+            pos[node] = (i*10, j*10)
+
+    print(G.nodes())
+    G.add_edges_from(edges)
+    nx.draw(G, pos, with_labels=True, node_size=8000, node_color="skyblue", font_size=10, font_weight="bold")
+    plt.title("Expectiminimax Tree")
+    plt.xlim(-50, 50)
+    plt.xlim(-10, 30)
+    plt.show()
