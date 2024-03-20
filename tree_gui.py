@@ -4,44 +4,6 @@ import networkx as nx
 from expectiminimax import Node
 
 
-def draw_expectiminimax_tree():
-    G = nx.Graph()
-
-    # Add nodes
-    G.add_node("Chance_1")
-    G.add_node("Chance_2")
-    G.add_node("Min_1")
-    G.add_node("Min_2")
-    G.add_node("Min_3")
-    G.add_node("Min_4")
-
-    # Add edges
-    G.add_edges_from([("Max_1", "Chance_1"),
-                      ("Max_1", "Chance_2"),
-                      ("Chance_1", "Min_1"),
-                      ("Chance_1", "Min_2"),
-                      ("Chance_2", "Min_3"),
-                      ("Chance_2", "Min_4"),
-                      ])
-
-    # Draw tree
-    pos = {
-        "Max_1": [0, 0],
-        "Chance_1": [-5, 10],
-        "Chance_2": [5, 10],
-        "Min_1": [-7.5, 20],
-        "Min_2": [-2.5, 20],
-        "Min_3": [2.5, 20],
-        "Min_4": [7.5, 20],
-    }
-    print(pos)
-    nx.draw(G, pos, with_labels=True, node_size=8000, node_color="skyblue", font_size=10, font_weight="bold")
-    plt.title("Expectiminimax Tree")
-    plt.xlim(-50, 50)
-    plt.xlim(-10, 30)
-    plt.show()
-
-
 def get_child_nodes(node, layers, edges):
     chance_nodes = node.chance_nodes
 
@@ -53,6 +15,7 @@ def get_child_nodes(node, layers, edges):
         edges.append((node.get_printable_state(), c["name"]))
         child_states = c["states"]
         for s in child_states:
+            layers[c["height"] + 1].append(s["node"].get_printable_state())
             get_child_nodes(s["node"], layers, edges)
             edges.append((c["name"], s["node"].get_printable_state()))
 
@@ -69,15 +32,22 @@ def construct_expectiminimax_tree(root, max_height):
     layers[0].append(root.get_printable_state())
     get_child_nodes(root, layers, edges)
 
-    for i, layer in enumerate(layers):
-        G.add_nodes_from(layer)
-        for j, node in enumerate(layer):
-            pos[node] = (i*10, j*10)
+    x_step = 10
+    x = x_step * len(layers)
+    for i in range(len(layers)-1, -1, -1):
+        G.add_nodes_from(layers[i])
 
-    print(G.nodes())
+        y = 0
+        y_step = len(layers[i]) * 10
+        for j, node in enumerate(layers[i]):
+            pos[node] = (x, y)
+            y -= y_step
+        x -= x_step
+
+    print(len(G.nodes()))
     G.add_edges_from(edges)
     nx.draw(G, pos, with_labels=True, node_size=8000, node_color="skyblue", font_size=10, font_weight="bold")
     plt.title("Expectiminimax Tree")
-    plt.xlim(-50, 50)
-    plt.xlim(-10, 30)
+    plt.xlim(0, 200)
+    plt.ylim(0, 200)
     plt.show()

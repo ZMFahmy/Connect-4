@@ -2,31 +2,30 @@ import tree_gui
 from game_board import GameBoard
 import expectiminimax
 
-"""
-board = GameBoard()
 
-board.insert_disc('r', 0)
-board.insert_disc('r', 0)
-board.insert_disc('r', 0)
-board.insert_disc('r', 1)
-board.insert_disc('r', 1)
-board.insert_disc('r', 2)
+board = GameBoard()
 
 print("Original board")
 board.print_board()
 
-board.get_children_states('y')
-i = 1
 
-print("Child states ")
-for child in board.child_states:
-    print(f"child no {i}")
-    state = child["state"]
-    child_board = GameBoard(state=state)
-    child_board.print_board()
-    i += 1
+def empty_spaces(state):
+    spaces = 0
+    for i in range(6):
+        for j in range(7):
+            if state.get_position(i, j) == ' ':
+                spaces += 1
+    return spaces
 
-print(board.get_state_as_2d_list())
-"""
 
-expectiminimax.get_next_move('c', 'h')
+while empty_spaces(board) > 0:
+    print("Player turn")
+    column = int(input("Enter column: "))
+    while not board.insert_disc('y', column-1):
+        column = int(input("Enter non empty column: "))
+    board.print_board()
+    print("Computer turn")
+    board.state = expectiminimax.get_next_move('y', 'r', board.state)
+    board.print_board()
+
+print("game ended")

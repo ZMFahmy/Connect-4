@@ -17,20 +17,22 @@ class GameBoard:
         for i in range(6, 0, -1):
             if self.state[row_start + column_number] == ' ':
                 self.state = self.state[:row_start + column_number] + color + self.state[row_start + column_number + 1:]
-                return
+                return self.state
             else:
                 row_start -= 7
+        return False
 
     def print_board(self):
-        print("  -------------------------------------------")
+        print("   -------------------------------------------")
         for i in range(6):
             row_start = i * 7
-            line = ""
+            line = f"{i + 1}"
             for j in range(7):
                 line += '  |  ' + self.state[row_start + j]
             line += '  |  '
             print(line)
-            print("  -------------------------------------------")
+            print("   -------------------------------------------")
+        print("      1     2     3     4     5     6     7")
 
     def get_position(self, row_number, column_number):
         row_start = row_number * 7
