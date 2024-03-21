@@ -1,7 +1,7 @@
 from game_board import GameBoard
 # alpha Beta pruning
 import numpy as np
-Max_Depth=7
+Max_Depth=5
 from expectiminimax import get_heuristic_score
 
 
@@ -212,7 +212,7 @@ def Minimize(N, alpha, beta):
 def Maximize(N, alpha, beta):
     parent = N
     if N.Depth >= Max_Depth:
-        k=heuristic_score(N.board.get_state_as_ndarray(),1,2)
+        k=get_heuristic_score(N.board.get_state_as_ndarray(),1,2)
         print(k)
         return None, k
     maxchild, maxutility = None, -1000000
