@@ -10,47 +10,8 @@ playerCOLOR=1
 BOTCOLOR='r'
 playerCOLOR='y'
 
-def calculate_score(board):
-    score = 0
-
-    # Horizontal check
-    for row in range(len(board)):
-        for col in range(len(board[0]) - 3):
-            window = [board[row][col + i] for i in range(4)]
-            score += evaluate_windowsc(window)
-
-    # Vertical check
-    for row in range(len(board) - 3):
-        for col in range(len(board[0])):
-            window = [board[row + i][col] for i in range(4)]
-            score += evaluate_windowsc(window)
-
-    # Diagonal check (positive slope)
-    for row in range(len(board) - 3):
-        for col in range(len(board[0]) - 3):
-            window = [board[row + i][col + i] for i in range(4)]
-            score += evaluate_windowsc(window)
-
-    # Diagonal check (negative slope)
-    for row in range(len(board) - 3):
-        for col in range(len(board[0]) - 3):
-            window = [board[row + 3 - i][col + i] for i in range(4)]
-            score += evaluate_windowsc(window)
-
-    return score
 
 
-def evaluate_windowsc(window):
-    if window.count(1) == 4:
-        return 1
-    elif window.count(1) == 5:
-        return 2
-    elif window.count(2) == 4:
-        return -1
-    elif window.count(2) == 5:
-        return -2
-    else:
-        return 0
 
 def get_heuristic_score(board_as_ndarray, player, opponent):
     player_score = 0
