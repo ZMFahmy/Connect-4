@@ -1,14 +1,18 @@
 import random
 
-# import tree_gui
+import numpy as np
+
+import expectiminimax_tree
+import tree_gui
 from game_board import GameBoard
 
 chance_nodes_counter = 1
+tree_height = 2
 
 
 class Node:
 
-    def __init__(self, optimizer_type, state, current_player_color, opponent_player_color, height):
+    def __init__(self, optimizer_type, state, current_player_color, opponent_player_color, height, indentation, tree_list):
         self.optimizer_type = optimizer_type
         self.board_object = GameBoard(state)
         self.state = self.board_object.state
@@ -17,11 +21,18 @@ class Node:
         self.height = height
         self.utility_score = None
 
-        self.board_object.get_children_states(opponent_player_color)
-        child_states = self.board_object.child_states if height <= 6 else None
+        self.board_object.get_children_states(current_player_color)
+        child_states = self.board_object.child_states if height <= tree_height else None
+
+        print(self.get_printable_state(indentation))
+        tree_list.append(self.get_printable_state(indentation))
+        tree_string_index_for_state = len(tree_list) - 1
+        indentation += "                 "
 
         if child_states is None:
-            self.utility_score = heuristic_score(self.board_object, current_player_color, opponent_player_color)
+            player = 1 if current_player_color == 'y' else 2
+            opponent = 2 if current_player_color == 'y' else 1
+            self.utility_score = get_heuristic_score(self.board_object.get_state_as_ndarray(), player, opponent)
 
         if child_states is not None:
             global chance_nodes_counter
@@ -34,11 +45,15 @@ class Node:
                 chance_node = {}
                 chance_node_states = []
 
+                print(f"{indentation}chance, score=")
+                tree_list.append(f"{indentation}chance, score=")
+                tree_string_index_for_chance = len(tree_list) - 1
+
                 for child_map in child_states:
                     if child_map["column_index"] == i - 1:
                         chance_state = {
                             "column_index": i - 1,
-                            "node": Node(upcoming_optimizer_type, child_map["state"], opponent_player_color, current_player_color, height + 2),
+                            "node": Node(upcoming_optimizer_type, child_map["state"], opponent_player_color, current_player_color, height + 2, indentation + "          ", tree_list),
                         }
                         chance_node_states.append(chance_state)
                         break
@@ -47,7 +62,7 @@ class Node:
                     if child_map["column_index"] == i:
                         chance_state = {
                             "column_index": i,
-                            "node": Node(upcoming_optimizer_type, child_map["state"], opponent_player_color, current_player_color, height + 2),
+                            "node": Node(upcoming_optimizer_type, child_map["state"], opponent_player_color, current_player_color, height + 2, indentation + "          ", tree_list),
                         }
                         chance_node_states.append(chance_state)
                         break
@@ -56,7 +71,7 @@ class Node:
                     if child_map["column_index"] == i + 1:
                         chance_state = {
                             "column_index": i + 1,
-                            "node": Node(upcoming_optimizer_type, child_map["state"], opponent_player_color, current_player_color, height + 2),
+                            "node": Node(upcoming_optimizer_type, child_map["state"], opponent_player_color, current_player_color, height + 2, indentation + "          ", tree_list),
                         }
                         chance_node_states.append(chance_state)
                         break
@@ -85,11 +100,13 @@ class Node:
                     child_node = child["node"]
                     utility_value += child["probability"] * child_node.utility_score
                 chance_node["utility_value"] = utility_value
+                tree_list[tree_string_index_for_chance] += "{:.2f}".format(utility_value)
 
                 chance_nodes_counter += 1
 
                 self.chance_nodes.append(chance_node)
             self.get_utility_score()
+            tree_list[tree_string_index_for_state] += "{:.2f}".format(self.utility_score)
 
     def get_utility_score(self):
         if self.optimizer_type == "max":
@@ -107,19 +124,16 @@ class Node:
         self.utility_score = score
         self.optimal_chance_node = best_chance_node
 
-    def get_printable_state(self):
-        state_formatted_string = ""
+    def get_printable_state(self, indentation):
+        state_formatted_string = indentation + '|'
         k = 0
         for i in range(6):
             for j in range(7):
-                state_formatted_string += self.state[k]
+                state_formatted_string += self.state[k] + '|'
                 k += 1
-            state_formatted_string += '\n'
+            state_formatted_string += f'\n{indentation}|'
+        state_formatted_string += f'\n{indentation}utility value = '
         return state_formatted_string
-
-
-def construct_tree(root):
-    pass
 
 
 def get_2s_score(state, color):
@@ -312,10 +326,69 @@ def heuristic_score(state, current_player_color, opponent_player_color):
     return current_player_score - opponent_player_score
 
 
+def get_heuristic_score(board_as_ndarray, player, opponent):
+    player_score = 0
+    opponent_score = 0
+    width = 7
+    height = 6
+    winning_length = 4
+
+    # Score horizontally
+    for r in range(height):
+        row_array = [int(i) for i in list(board_as_ndarray[r, :])]
+        for c in range(width - 3):
+            window = row_array[c:c + winning_length]
+            player_score += evaluate_window(window, player, opponent)
+            opponent_score += evaluate_window(window, opponent, player)
+
+    # Score vertically
+    for c in range(width):
+        col_array = [int(i) for i in list(board_as_ndarray[:, c])]
+        for r in range(height - 3):
+            window = col_array[r:r + winning_length]
+            player_score += evaluate_window(window, player, opponent)
+            opponent_score += evaluate_window(window, opponent, player)
+
+    # Score diagonally (up-right)
+    for r in range(height - 3):
+        for c in range(width - 3):
+            window = [board_as_ndarray[r + i][c + i] for i in range(winning_length)]
+            player_score += evaluate_window(window, player, opponent)
+            opponent_score += evaluate_window(window, opponent, player)
+
+    # Score diagonally (up-left)
+    for r in range(height - 3):
+        for c in range(width - 3):
+            window = [board_as_ndarray[r + i][c + winning_length - 1 - i] for i in range(winning_length)]
+            player_score += evaluate_window(window, player, opponent)
+            opponent_score += evaluate_window(window, opponent, player)
+
+    return player_score - opponent_score
+
+
+def evaluate_window(window, player, opponent):
+    score = 0
+
+    window = [item.tolist() if isinstance(item, np.ndarray) else item for item in window]  # Convert arrays to lists
+
+    if window.count(player) == 4:
+        score += 100
+    elif window.count(player) == 3 and window.count(0) == 1:
+        score += 5
+    elif window.count(player) == 2 and window.count(0) == 2:
+        score += 2
+
+    if window.count(opponent) == 3 and window.count(0) == 1:
+        score -= 4
+
+    return score
+
+
 def get_next_move(computer_player_color, human_player_color, current_state=None):
-    root = Node("max", current_state, computer_player_color, human_player_color, 0)
-    choice_moves = root.optimal_chance_node["states"]
+    tree_list = []
+    root = Node("max", current_state, computer_player_color, human_player_color, 0, "", tree_list)
     print(root.optimal_chance_node["utility_value"])
+    choice_moves = root.optimal_chance_node["states"]
 
     choice_states = []
     choice_probabilities = []
@@ -329,4 +402,5 @@ def get_next_move(computer_player_color, human_player_color, current_state=None)
         choice_probabilities[max_index] = 1 - sum(choice_probabilities)
 
     next_state = random.choices(choice_states, weights=choice_probabilities, k=1)[0]
+    expectiminimax_tree.print_list_of_strings(tree_list)
     return next_state

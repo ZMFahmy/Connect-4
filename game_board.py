@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class GameBoard:
     def __init__(self, state=None):
         if state is None:
@@ -50,6 +53,7 @@ class GameBoard:
                 }
                 self.child_states.append(child_node)
                 self.state = original_state
+
     def get_children_states_alphaBeta(self, next_player):
         positions=[]
         for i in range(7):
@@ -66,7 +70,6 @@ class GameBoard:
                 self.state = original_state
         return positions
 
-
     def get_state_as_2d_list(self):
         arr = []
         for i in range(6):
@@ -76,3 +79,16 @@ class GameBoard:
                 row.append(self.state[row_start + j])
             arr.append(row)
         return arr
+
+    def get_state_as_ndarray(self):
+        arr = np.array(self.get_state_as_2d_list())
+        for i in range(6):
+            for j in range(7):
+                if arr[i][j] == ' ':
+                    arr[i][j] = 0
+                elif arr[i][j] == 'r':
+                    arr[i][j] = 1
+                if arr[i][j] == 'y':
+                    arr[i][j] = 2
+
+        return np.array(arr)
