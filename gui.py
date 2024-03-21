@@ -2,7 +2,7 @@ import numpy as np
 import pygame
 import subprocess
 from game_board import GameBoard
-from pruning_minimax import Minimax,calculate_score
+from pruning_minimax import Minimax
 from expectiminimax import get_next_move
 import GUI_Hossam
 import sys
@@ -241,6 +241,3 @@ if num=="3":
                     y=np.flip(y)
                     draw_board(y)
                     pygame.display.update()
-
-
-
