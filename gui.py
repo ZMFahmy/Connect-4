@@ -1,8 +1,10 @@
 import numpy as np
 import pygame
+import subprocess
 from game_board import GameBoard
 from pruning_minimax import Minimax
 from expectiminimax import get_next_move
+import GUI_Hossam
 import sys
 COLS=7
 ROWS=6
@@ -41,6 +43,8 @@ draw_board(y)
 count=0
 pygame.display.update()
 turn='r'
+if num=="1":
+    subprocess.run(['python', 'GUI_Hossam.py'])
 if num=="2":
     while count<=20:
         for event in pygame.event.get():
