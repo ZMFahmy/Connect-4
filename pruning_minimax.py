@@ -1,7 +1,8 @@
 from game_board import GameBoard
 # alpha Beta pruning
 import numpy as np
-Max_Depth=4
+Max_Depth=7
+from expectiminimax import get_heuristic_score
 
 
 BOTCOLOR=2
@@ -225,7 +226,8 @@ class Node():
 def Minimize(N, alpha, beta):
     parent = N
     if N.Depth >= Max_Depth:
-        k = heuristic_score(N.board, N.current_player_color, N.opponet_player_color)
+
+        k = get_heuristic_score(N.board.get_state_as_ndarray(),1,2 )
         print(k)
         return None, k
     minchild, minutility = None, 1000000
@@ -249,7 +251,7 @@ def Minimize(N, alpha, beta):
 def Maximize(N, alpha, beta):
     parent = N
     if N.Depth >= Max_Depth:
-        k=heuristic_score(N.board,N.current_player_color,N.opponet_player_color)
+        k=heuristic_score(N.board.get_state_as_ndarray(),1,2)
         print(k)
         return None, k
     maxchild, maxutility = None, -1000000
