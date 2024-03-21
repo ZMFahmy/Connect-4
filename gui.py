@@ -2,12 +2,80 @@ import numpy as np
 import pygame
 import subprocess
 from game_board import GameBoard
-from pruning_minimax import Minimax
+from pruning_minimax import Minimax,calculate_score
 from expectiminimax import get_next_move
 import GUI_Hossam
 import sys
+from GUI_Hossam import main
 COLS=7
 ROWS=6
+
+
+def calculate_score(board, color):
+  """
+  Calculates the score for a given color on a Connect Four board.
+
+  Args:
+      board: A list of lists representing the Connect Four board.
+              board[i][j] represents the color at row i, column j.
+              Empty cells are represented by None.
+      color: The color to calculate the score for (e.g., "red" or "yellow").
+
+  Returns:
+      The score for the given color.
+  """
+
+  rows, cols = len(board), len(board[0])
+  score = 0
+
+  # Check for horizontal streaks
+  for row in range(rows):
+    consecutive_count = 0
+    for col in range(cols):
+      if board[row][col] == color:
+        consecutive_count += 1
+      else:
+        consecutive_count = 0
+      if consecutive_count == 4:
+        score += 1
+      elif consecutive_count == 5:
+        score += 2
+
+  # Check for vertical streaks (similar logic)
+  for col in range(cols):
+    consecutive_count = 0
+    for row in range(rows):
+      if board[row][col] == color:
+        consecutive_count += 1
+      else:
+        consecutive_count = 0
+      if consecutive_count == 4:
+        score += 1
+      elif consecutive_count == 5:
+        score += 2
+
+  # Check for diagonal streaks (upward and downward)
+  for row in range(rows - 3):
+    for col in range(cols - 3):
+      # Upward diagonal streak
+      if (board[row][col] == color and
+          board[row + 1][col + 1] == color and
+          board[row + 2][col + 2] == color and
+          board[row + 3][col + 3] == color):
+        score += 1
+      elif (board[row][col] == color and
+            board[row + 1][col + 1] == color and
+            board[row + 2][col + 2] == color and
+            board[row + 3][col + 3] == color and
+            board[row + 4][col + 4] == color):
+        score += 2
+
+      # Downward diagonal streak (similar logic)
+
+  return score
+
+
+
 def boardReshape(state):
     y=np.zeros([6,7])
     counter=0
@@ -46,7 +114,7 @@ turn='r'
 if num=="1":
     subprocess.run(['python', 'GUI_Hossam.py'])
 if num=="2":
-    while count<=20:
+    while count<=21:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
@@ -91,6 +159,18 @@ if num=="2":
                     y=np.flip(y)
                     draw_board(y)
                     pygame.display.update()
+    b.state = Minimax(b.state)
+
+    turn = 'r'
+    y = b.get_state_as_2d_list()
+    print(y)
+    y = np.flip(y)
+    draw_board(y)
+    pygame.display.update()
+
+    print(calculate_score(b.get_state_as_2d_list(),'r'))
+
+    print(calculate_score(b.get_state_as_2d_list(),'y'))
 
 if num=="3":
     while count<=20:
@@ -138,3 +218,4 @@ if num=="3":
                     y=np.flip(y)
                     draw_board(y)
                     pygame.display.update()
+
