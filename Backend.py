@@ -1,5 +1,5 @@
 import numpy as np
-
+import time
 
 class Connect4:
     def __init__(self, width=7, height=6):
@@ -88,19 +88,28 @@ class Connect4:
         if window.count(opponent) == 3 and window.count(0) == 1:
             score -= 4
 
-#        print("Player score:", score)  # Print the player's score to debug
 
         return score
+
 
 
 class AI:
     def __init__(self, depth):
         self.depth = depth
+        self.expanded_nodes = 0
 
     def get_move(self, game):
-        return self.minimax(game, self.depth, True)[0]
+        start_time = time.time()
+        move, value = self.minimax(game, self.depth, True)
+        end_time = time.time()
+        print("Time taken:", end_time - start_time, "seconds")
+        print("Expanded nodes:", self.expanded_nodes)
+        return move
 
     def minimax(self, state, depth, maximizing_player):
+        indentation = "|  " * (self.depth - depth)
+        print(indentation + "---" + ("Max" if maximizing_player else "Min") + " node")
+
         valid_locations = state.get_valid_locations()
         is_terminal = state.is_draw() or depth == 0
         if is_terminal:
@@ -110,21 +119,31 @@ class AI:
             value = -np.Inf
             column = np.random.choice(valid_locations)
             for col in valid_locations:
+                self.expanded_nodes += 1
                 child_state = state.copy()
                 child_state.drop_piece(col, state.player2)
-                new_score = self.minimax(child_state, depth-1, False)[1]
+                new_score = self.minimax(child_state, depth - 1, False)[1]
+
                 if new_score > value:
                     value = new_score
                     column = col
+                print(indentation + "---Child:", col + 1, "Score:", new_score)
+                child_state.print_board()  # Print the board for this child state
             return column, value
-        else: # Minimizing player
+        else:  # Minimizing player
             value = np.Inf
             column = np.random.choice(valid_locations)
             for col in valid_locations:
+                self.expanded_nodes += 1
                 child_state = state.copy()
                 child_state.drop_piece(col, state.player1)
-                new_score = self.minimax(child_state, depth-1, True)[1]
+                new_score = self.minimax(child_state, depth - 1, True)[1]
+
                 if new_score < value:
                     value = new_score
                     column = col
+                print(indentation + "---Child:", col + 1, "Score:", new_score)
+                child_state.print_board()  # Print the board for this child state
+
             return column, value
+

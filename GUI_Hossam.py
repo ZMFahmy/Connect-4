@@ -52,8 +52,8 @@ def main():
     board = create_board()
     draw_board(screen, board)
 
-    ai = AI(depth=4)
-
+    depth = int(input("Enter the depth for the AI player: "))
+    ai = AI(depth=depth)
     game_over = False
     turn = 0
 
@@ -126,7 +126,7 @@ def main():
 
             screen.blit(label, (40, 10))
             pygame.display.update()
-            pygame.time.wait(10000)
+            pygame.time.wait(7000)
 
 
 
