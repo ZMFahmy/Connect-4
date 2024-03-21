@@ -23,18 +23,19 @@ def create_board():
 def draw_board(screen, game):
     for c in range(COLUMN_COUNT):
         for r in range(ROW_COUNT):
-            pygame.draw.rect(screen, BLUE, (c * SQUARESIZE, r * SQUARESIZE + SQUARESIZE, SQUARESIZE, SQUARESIZE))
+            pygame.draw.rect(screen, BLUE, (c * SQUARESIZE, (ROW_COUNT - 1 - r) * SQUARESIZE + SQUARESIZE, SQUARESIZE, SQUARESIZE))
             pygame.draw.circle(screen, BLACK, (int(c * SQUARESIZE + SQUARESIZE / 2),
-                                               int(r * SQUARESIZE + SQUARESIZE + SQUARESIZE / 2)), RADIUS)
+                                               int((ROW_COUNT - 1 - r) * SQUARESIZE + SQUARESIZE + SQUARESIZE / 2)), RADIUS)
     for c in range(COLUMN_COUNT):
         for r in range(ROW_COUNT):
             if game.board[r][c] == 1:
                 pygame.draw.circle(screen, RED, (int(c * SQUARESIZE + SQUARESIZE / 2),
-                                                  height - int(r * SQUARESIZE + SQUARESIZE / 2)), RADIUS)
+                                                  height - int((ROW_COUNT - 1 - r) * SQUARESIZE + SQUARESIZE / 2)), RADIUS)
             elif game.board[r][c] == 2:
                 pygame.draw.circle(screen, YELLOW, (int(c * SQUARESIZE + SQUARESIZE / 2),
-                                                     height - int(r * SQUARESIZE + SQUARESIZE / 2)), RADIUS)
+                                                     height - int((ROW_COUNT - 1 - r) * SQUARESIZE + SQUARESIZE / 2)), RADIUS)
     pygame.display.update()
+
 
 
 def get_mouse_pos(posx):
@@ -125,7 +126,7 @@ def main():
 
             screen.blit(label, (40, 10))
             pygame.display.update()
-            pygame.time.wait(3000)
+            pygame.time.wait(10000)
 
 
 
