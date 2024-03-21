@@ -181,7 +181,7 @@ if num=="2":
 
         player1_score = get_heuristic_score(state,2,1)
         player2_score = get_heuristic_score(state, 1, 2)
-        print(player1_score,player2_score)
+        # print(player1_score,player2_score)
 
         if player1_score > player2_score:
             label = myfont.render("Player 1 Wins!", 1,(0,0,255) )
