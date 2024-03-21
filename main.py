@@ -29,4 +29,3 @@ while empty_spaces(board) > 0:
     board.print_board()
 
 print("game ended")
-print(score_count(board.get_state_as_ndarray()))
