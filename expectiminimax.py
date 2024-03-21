@@ -1,5 +1,5 @@
 import random
-
+import time
 import numpy as np
 
 import expectiminimax_tree
@@ -8,11 +8,13 @@ from game_board import GameBoard
 
 chance_nodes_counter = 1
 tree_height = 2
-
+nodes_expanded = 0
 
 class Node:
 
     def __init__(self, optimizer_type, state, current_player_color, opponent_player_color, height, indentation, tree_list):
+        global nodes_expanded
+
         self.optimizer_type = optimizer_type
         self.board_object = GameBoard(state)
         self.state = self.board_object.state
@@ -23,11 +25,12 @@ class Node:
 
         self.board_object.get_children_states(current_player_color)
         child_states = self.board_object.child_states if height <= tree_height else None
+        nodes_expanded += 1
 
-        print(self.get_printable_state(indentation))
+        #print(self.get_printable_state(indentation))
         tree_list.append(self.get_printable_state(indentation))
         tree_string_index_for_state = len(tree_list) - 1
-        indentation += "                 "
+        indentation += "                       "
 
         if child_states is None:
             player = 1 if current_player_color == 'y' else 2
@@ -45,15 +48,17 @@ class Node:
                 chance_node = {}
                 chance_node_states = []
 
-                print(f"{indentation}chance, score=")
-                tree_list.append(f"{indentation}chance, score=")
+                nodes_expanded += 1
+
+                #print(f"{indentation}chance, score=")
+                tree_list.append(f"{indentation}chance\n{indentation}score=")
                 tree_string_index_for_chance = len(tree_list) - 1
 
                 for child_map in child_states:
                     if child_map["column_index"] == i - 1:
                         chance_state = {
                             "column_index": i - 1,
-                            "node": Node(upcoming_optimizer_type, child_map["state"], opponent_player_color, current_player_color, height + 2, indentation + "          ", tree_list),
+                            "node": Node(upcoming_optimizer_type, child_map["state"], opponent_player_color, current_player_color, height + 2, indentation + "             ", tree_list),
                         }
                         chance_node_states.append(chance_state)
                         break
@@ -62,7 +67,7 @@ class Node:
                     if child_map["column_index"] == i:
                         chance_state = {
                             "column_index": i,
-                            "node": Node(upcoming_optimizer_type, child_map["state"], opponent_player_color, current_player_color, height + 2, indentation + "          ", tree_list),
+                            "node": Node(upcoming_optimizer_type, child_map["state"], opponent_player_color, current_player_color, height + 2, indentation + "             ", tree_list),
                         }
                         chance_node_states.append(chance_state)
                         break
@@ -71,7 +76,7 @@ class Node:
                     if child_map["column_index"] == i + 1:
                         chance_state = {
                             "column_index": i + 1,
-                            "node": Node(upcoming_optimizer_type, child_map["state"], opponent_player_color, current_player_color, height + 2, indentation + "          ", tree_list),
+                            "node": Node(upcoming_optimizer_type, child_map["state"], opponent_player_color, current_player_color, height + 2, indentation + "             ", tree_list),
                         }
                         chance_node_states.append(chance_state)
                         break
@@ -106,7 +111,7 @@ class Node:
 
                 self.chance_nodes.append(chance_node)
             self.get_utility_score()
-            tree_list[tree_string_index_for_state] += "{:.2f}".format(self.utility_score)
+        tree_list[tree_string_index_for_state] += "{:.2f}".format(self.utility_score)
 
     def get_utility_score(self):
         if self.optimizer_type == "max":
@@ -132,6 +137,7 @@ class Node:
                 state_formatted_string += self.state[k] + '|'
                 k += 1
             state_formatted_string += f'\n{indentation}|'
+        state_formatted_string = state_formatted_string[:-1]
         state_formatted_string += f'\n{indentation}utility value = '
         return state_formatted_string
 
@@ -386,8 +392,10 @@ def evaluate_window(window, player, opponent):
 
 def get_next_move(computer_player_color, human_player_color, current_state=None):
     tree_list = []
+    start_time = time.time()
+    global nodes_expanded
+    nodes_expanded = 0
     root = Node("max", current_state, computer_player_color, human_player_color, 0, "", tree_list)
-    print(root.optimal_chance_node["utility_value"])
     choice_moves = root.optimal_chance_node["states"]
 
     choice_states = []
@@ -402,5 +410,9 @@ def get_next_move(computer_player_color, human_player_color, current_state=None)
         choice_probabilities[max_index] = 1 - sum(choice_probabilities)
 
     next_state = random.choices(choice_states, weights=choice_probabilities, k=1)[0]
-    expectiminimax_tree.print_list_of_strings(tree_list)
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"elapsed time = {elapsed_time}, nodes expanded = {nodes_expanded}")
+
+    #  expectiminimax_tree.print_list_of_strings(tree_list)
     return next_state
