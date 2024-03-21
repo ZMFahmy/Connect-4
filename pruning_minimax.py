@@ -1,73 +1,126 @@
 from game_board import GameBoard
 # alpha Beta pruning
+import numpy as np
 Max_Depth=4
 
+
+BOTCOLOR=2
+playerCOLOR=1
 BOTCOLOR='r'
 playerCOLOR='y'
 
+def calculate_score(board):
+    score = 0
+
+    # Horizontal check
+    for row in range(len(board)):
+        for col in range(len(board[0]) - 3):
+            window = [board[row][col + i] for i in range(4)]
+            score += evaluate_windowsc(window)
+
+    # Vertical check
+    for row in range(len(board) - 3):
+        for col in range(len(board[0])):
+            window = [board[row + i][col] for i in range(4)]
+            score += evaluate_windowsc(window)
+
+    # Diagonal check (positive slope)
+    for row in range(len(board) - 3):
+        for col in range(len(board[0]) - 3):
+            window = [board[row + i][col + i] for i in range(4)]
+            score += evaluate_windowsc(window)
+
+    # Diagonal check (negative slope)
+    for row in range(len(board) - 3):
+        for col in range(len(board[0]) - 3):
+            window = [board[row + 3 - i][col + i] for i in range(4)]
+            score += evaluate_windowsc(window)
+
+    return score
 
 
-# def get_3s_score(state, color):
-#     score = 0
-#     #  horizontal
-#     i = 0  # row
-#     for j in range(7):  # column
-#         while i < 4:
-#             if state.get_position(i, j) == color and state.get_position(i + 1, j) == color and state.get_position(i + 2, j) == color:
-#                 score += 1
-#                 i += 3
-#             else:
-#                 i += 1
-#         i = 0
-#
-#     #  vertical
-#     j = 0  # column
-#     for i in range(6):
-#         while j < 5:
-#             if state.get_position(i, j) == color and state.get_position(i, j + 1) == color and state.get_position(i, j + 2) == color:
-#                 score += 1
-#                 j += 3
-#             else:
-#                 j += 1
-#         j = 0
-#
-#     return score
-#
-#
-# def get_4s_score(state, color):
-#     score = 0
-#     #  horizontal
-#     i = 0  # row
-#     for j in range(7):  # column
-#         while i < 3:
-#             if state.get_position(i, j) == color and state.get_position(i + 1, j) == color and state.get_position(i + 2, j) == color and state.get_position(i + 3, j) == color:
-#                 score += 1
-#                 i += 4
-#             else:
-#                 i += 1
-#         i = 0
-#
-#     #  vertical
-#     j = 0  # column
-#     for i in range(6):
-#         while j < 4:
-#             if state.get_position(i, j) == color and state.get_position(i, j + 1) == color and state.get_position(i, j + 2) == color and state.get_position(i, j + 3) == color:
-#                 score += 1
-#                 j += 4
-#             else:
-#                 j += 1
-#         j = 0
-#
-#     return score
+def evaluate_windowsc(window):
+    if window.count(1) == 4:
+        return 1
+    elif window.count(1) == 5:
+        return 2
+    elif window.count(2) == 4:
+        return -1
+    elif window.count(2) == 5:
+        return -2
+    else:
+        return 0
+
+def get_heuristic_score(board_as_ndarray, player, opponent):
+    player_score = 0
+    opponent_score = 0
+    width = 7
+    height = 6
+    winning_length = 4
+
+    # Score horizontally
+    for r in range(height):
+        row_array = [int(i) for i in list(board_as_ndarray[r, :])]
+        for c in range(width - 3):
+            window = row_array[c:c + winning_length]
+            player_score += evaluate_window(window, player, opponent)
+            opponent_score += evaluate_window(window, opponent, player)
+
+    # Score vertically
+    for c in range(width):
+        col_array = [int(i) for i in list(board_as_ndarray[:, c])]
+        for r in range(height - 3):
+            window = col_array[r:r + winning_length]
+            player_score += evaluate_window(window, player, opponent)
+            opponent_score += evaluate_window(window, opponent, player)
+
+    # Score diagonally (up-right)
+    for r in range(height - 3):
+        for c in range(width - 3):
+            window = [board_as_ndarray[r + i][c + i] for i in range(winning_length)]
+            player_score += evaluate_window(window, player, opponent)
+            opponent_score += evaluate_window(window, opponent, player)
+
+    # Score diagonally (up-left)
+    for r in range(height - 3):
+        for c in range(width - 3):
+            window = [board_as_ndarray[r + i][c + winning_length - 1 - i] for i in range(winning_length)]
+            player_score += evaluate_window(window, player, opponent)
+            opponent_score += evaluate_window(window, opponent, player)
+
+    return player_score - opponent_score
+
+
+def evaluate_window(window, player, opponent):
+    score = 0
+
+    window = [item.tolist() if isinstance(item, np.ndarray) else item for item in window]  # Convert arrays to lists
+
+    if window.count(player) == 4:
+        score += 100
+    elif window.count(player) == 3 and window.count(0) == 1:
+        score += 5
+    elif window.count(player) == 2 and window.count(0) == 2:
+        score += 2
+
+    if window.count(opponent) == 3 and window.count(0) == 1:
+        score -= 4
+    if window.count(opponent) == 4 and window.count(0) == 1:
+        score -= 100
+
+    return score
+
+
 
 
 def heuristic_score(state, current_player_color, opponent_player_color):
     current_player_score = 0
     opponent_player_score = 0
 
+    # Define weights for different patterns
     weights = {
         "2-in-a-row": 1,
-        "3-in-a-row": 4,
+        "3-in-a-row": 10,
         "4-in-a-row": 1000,
         "center": 2,
         "edge": 1
@@ -77,31 +130,36 @@ def heuristic_score(state, current_player_color, opponent_player_color):
     for i in range(6):
         for j in range(7):
             color = state.get_position(i, j)
-            consecutive_count = 0  # Track consecutive cells of the same color
-
-            # Check horizontal patterns
-            for k in range(j, min(j + 4, 7)):
-                if state.get_position(i, k) == color:
-                    consecutive_count += 1
-                else:
-                    consecutive_count = 0
-                if consecutive_count == 2:
-                    current_player_score += weights["2-in-a-row"] if color == current_player_color else -weights["2-in-a-row"]
-                elif consecutive_count == 3:
-                    current_player_score += weights["3-in-a-row"] if color == current_player_color else -weights["3-in-a-row"]
-
-            # Check vertical patterns (similar logic)
-            consecutive_count = 0
-            for k in range(i, min(i + 4, 6)):
-                if state.get_position(k, j) == color:
-                    consecutive_count += 1
-                else:
-                    consecutive_count = 0
-                if consecutive_count == 2:
-                    current_player_score += weights["2-in-a-row"] if color == current_player_color else -weights["2-in-a-row"]
-                elif consecutive_count == 3:
-                    current_player_score += weights["3-in-a-row"] if color == current_player_color else -weights["3-in-a-row"]
-
+            if color == current_player_color:
+                # Check horizontal patterns
+                if j <= 3:
+                    current_player_score += weights["2-in-a-row"]
+                    if j <= 2:
+                        current_player_score += weights["3-in-a-row"]
+                        if j == 0:
+                            current_player_score += weights["4-in-a-row"]
+                # Check vertical patterns
+                if i <= 2:
+                    current_player_score += weights["2-in-a-row"]
+                    if i <= 1:
+                        current_player_score += weights["3-in-a-row"]
+                        if i == 0:
+                            current_player_score += weights["4-in-a-row"]
+            elif color == opponent_player_color:
+                # Check horizontal patterns
+                if j <= 3:
+                    opponent_player_score += weights["2-in-a-row"]
+                    if j <= 2:
+                        opponent_player_score += weights["3-in-a-row"]
+                        if j == 0:
+                            opponent_player_score += weights["4-in-a-row"]
+                # Check vertical patterns
+                if i <= 2:
+                    opponent_player_score += weights["2-in-a-row"]
+                    if i <= 1:
+                        opponent_player_score += weights["3-in-a-row"]
+                        if i == 0:
+                            opponent_player_score += weights["4-in-a-row"]
 
     # Diagonal patterns (/ and \)
     for i in range(3):
@@ -175,7 +233,9 @@ def Minimize(N, alpha, beta):
     for child in N.board.child_states:
         board = GameBoard()
         board.state = child
-        ch = Node(board.state,playerCOLOR, BOTCOLOR, 'max', Depth=parent.Depth + 1)
+        print("Depth", N.Depth+1)
+        board.print_board()
+        ch = Node(board.state, BOTCOLOR,playerCOLOR, 'max', Depth=parent.Depth + 1)
         childret, utility = Maximize(ch, alpha, beta)
         if utility < minutility:
             minchild = child
@@ -197,7 +257,9 @@ def Maximize(N, alpha, beta):
     for child in N.board.child_states:
         board = GameBoard()
         board.state = child
-        ch = Node(board.state, BOTCOLOR, playerCOLOR, 'max', Depth=parent.Depth + 1)
+        print("Depth",N.Depth+1)
+        board.print_board()
+        ch = Node(board.state, playerCOLOR, BOTCOLOR, 'max', Depth=parent.Depth + 1)
         childret, utility = Minimize(ch, alpha, beta)
         if utility > maxutility:
             maxchild = child
@@ -218,6 +280,7 @@ def Maximize(N, alpha, beta):
 def Minimax(state):
     root = Node(state,BOTCOLOR,playerCOLOR, 'max', 0)
     child, utility = Maximize(root, -1000000, 1000000)
+
     return child
 
 

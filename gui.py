@@ -1,133 +1,221 @@
+import numpy as np
 import pygame
+import subprocess
+from game_board import GameBoard
+from pruning_minimax import Minimax,calculate_score
+from expectiminimax import get_next_move
+import GUI_Hossam
 import sys
-from Backend import Connect4, AI
-
-# Constants
-ROW_COUNT = 6
-COLUMN_COUNT = 7
-SQUARESIZE = 100
-RADIUS = int(SQUARESIZE / 2 - 5)
-width = COLUMN_COUNT * SQUARESIZE
-height = (ROW_COUNT + 1) * SQUARESIZE
-size = (width, height)
-BLUE = (0, 0, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-YELLOW = (255, 255, 0)
+from GUI_Hossam import main
+COLS=7
+ROWS=6
 
 
-def create_board():
-    return Connect4()
+def calculate_score(board, color):
+  """
+  Calculates the score for a given color on a Connect Four board.
+
+  Args:
+      board: A list of lists representing the Connect Four board.
+              board[i][j] represents the color at row i, column j.
+              Empty cells are represented by None.
+      color: The color to calculate the score for (e.g., "red" or "yellow").
+
+  Returns:
+      The score for the given color.
+  """
+
+  rows, cols = len(board), len(board[0])
+  score = 0
+
+  # Check for horizontal streaks
+  for row in range(rows):
+    consecutive_count = 0
+    for col in range(cols):
+      if board[row][col] == color:
+        consecutive_count += 1
+      else:
+        consecutive_count = 0
+      if consecutive_count == 4:
+        score += 1
+      elif consecutive_count == 5:
+        score += 2
+
+  # Check for vertical streaks (similar logic)
+  for col in range(cols):
+    consecutive_count = 0
+    for row in range(rows):
+      if board[row][col] == color:
+        consecutive_count += 1
+      else:
+        consecutive_count = 0
+      if consecutive_count == 4:
+        score += 1
+      elif consecutive_count == 5:
+        score += 2
+
+  # Check for diagonal streaks (upward and downward)
+  for row in range(rows - 3):
+    for col in range(cols - 3):
+      # Upward diagonal streak
+      if (board[row][col] == color and
+          board[row + 1][col + 1] == color and
+          board[row + 2][col + 2] == color and
+          board[row + 3][col + 3] == color):
+        score += 1
+      elif (board[row][col] == color and
+            board[row + 1][col + 1] == color and
+            board[row + 2][col + 2] == color and
+            board[row + 3][col + 3] == color and
+            board[row + 4][col + 4] == color):
+        score += 2
+
+      # Downward diagonal streak (similar logic)
+
+  return score
 
 
-def draw_board(screen, game):
-    for c in range(COLUMN_COUNT):
-        for r in range(ROW_COUNT):
-            pygame.draw.rect(screen, BLUE, (c * SQUARESIZE, r * SQUARESIZE + SQUARESIZE, SQUARESIZE, SQUARESIZE))
-            pygame.draw.circle(screen, BLACK, (int(c * SQUARESIZE + SQUARESIZE / 2),
-                                               int(r * SQUARESIZE + SQUARESIZE + SQUARESIZE / 2)), RADIUS)
-    for c in range(COLUMN_COUNT):
-        for r in range(ROW_COUNT):
-            if game.board[r][c] == 1:
-                pygame.draw.circle(screen, RED, (int(c * SQUARESIZE + SQUARESIZE / 2),
-                                                  height - int(r * SQUARESIZE + SQUARESIZE / 2)), RADIUS)
-            elif game.board[r][c] == 2:
-                pygame.draw.circle(screen, YELLOW, (int(c * SQUARESIZE + SQUARESIZE / 2),
-                                                     height - int(r * SQUARESIZE + SQUARESIZE / 2)), RADIUS)
-    pygame.display.update()
+
+def boardReshape(state):
+    y=np.zeros([6,7])
+    counter=0
+    for r in range(ROWS):
+        for c in range (COLS):
+            y[5-r][c]=state[counter]
+    return y
 
 
-def get_mouse_pos(posx):
-    col = posx // SQUARESIZE
-    return col
+def draw_board(board):
+    for c in range(COLS):
+        for r in range(ROWS+1,0,-1):
+            pygame.draw.rect(screen,(0,0,255),(c*squaresize,r*squaresize,squaresize,squaresize))
+            if board[(ROWS-r)][c]==' ':
+                pygame.draw.circle(screen,(0,0,0),(c*squaresize+squaresize/2,r*squaresize+squaresize/2),radius=(squaresize/2 -5))
+            elif board[(ROWS-r)][c]=='r':
+                pygame.draw.circle(screen,(255,0,0),(c*squaresize+squaresize/2,r*squaresize+squaresize/2),radius=(squaresize/2 -5))
+            elif board[(ROWS-r)][c]=='y':
+                pygame.draw.circle(screen,(255,255,0),(c*squaresize+squaresize/2,r*squaresize+squaresize/2),radius=(squaresize/2 -5))
+    pass
 
-
-def main():
-    pygame.init()
-    screen = pygame.display.set_mode(size)
-    pygame.display.set_caption("Connect Four")
-    myfont = pygame.font.SysFont("monospace", 75)
-
-    board = create_board()
-    draw_board(screen, board)
-
-    ai = AI(depth=4)
-
-    game_over = False
-    turn = 0
-
-    while not game_over:
+pygame.init()
+squaresize=100
+width=COLS*squaresize
+height=(ROWS+1)*squaresize
+size=(width,height)
+num=input("enter the number of algorithm type 1.minimax 2.aphabeta  3.expected minimax ")
+screen=pygame.display.set_mode(size)
+b=GameBoard()
+y=b.get_state_as_2d_list()
+print(y)
+draw_board(y)
+count=0
+pygame.display.update()
+turn='r'
+if num=="1":
+    subprocess.run(['python', 'GUI_Hossam.py'])
+if num=="2":
+    while count<=21:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
-
             if event.type == pygame.MOUSEMOTION:
-                pygame.draw.rect(screen, BLACK, (0, 0, width, SQUARESIZE))
-                posx = event.pos[0]
-                if turn == 0:
-                    pygame.draw.circle(screen, RED, (posx, int(SQUARESIZE / 2)), RADIUS)
-                else:
-                    pygame.draw.circle(screen, YELLOW, (posx, int(SQUARESIZE / 2)), RADIUS)
+                pygame.draw.rect(screen, (0, 0, 0), (0, 0, width, squaresize))
+                if turn == 'r':
+                    posx = event.pos[0]
+
+                    pygame.draw.circle(screen, (255, 0, 0), (posx + squaresize / 2, squaresize / 2),
+                                       radius=(squaresize / 2 - 5))
+
+                if turn == 'y':
+                    posx = event.pos[0]
+
+                    pygame.draw.circle(screen, (255, 255, 0), (posx + squaresize / 2, squaresize / 2),
+                                       radius=(squaresize / 2 - 5))
                 pygame.display.update()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                pygame.draw.rect(screen, BLACK, (0, 0, width, SQUARESIZE))
-                if turn == 0:
-                    col = get_mouse_pos(event.pos[0])
-                    if board.is_valid_location(col):
-                        for r in range(ROW_COUNT):
-                            if board.board[ROW_COUNT - 1 - r][col] == 0:
-                                board.board[ROW_COUNT - 1 - r][col] = 1
+                    print(event.pos)
+                    if turn == 'r':
+                        posx = event.pos[0]
+                        col = 6-int(round(posx / squaresize))
+                        print(col)
+                        if not b.insert_disc(turn, col):
+                            turn = 'r'
+                        else:
+                            turn = 'y'
+                            count+=1
+                        y = b.get_state_as_2d_list()
+                        print(y)
+                        y = np.flip(y)
+                        draw_board(y)
+                        pygame.display.update()
+            elif turn == 'y':
 
-                                if board.is_draw() or turn == ROW_COUNT * COLUMN_COUNT - 1:
-                                    label = myfont.render("Draw!", 1, BLACK)
-                                    screen.blit(label, (40, 10))
-                                    game_over = True
+                    b.state=Minimax(b.state)
 
-                                turn += 1
-                                turn = turn % 2
+                    turn='r'
+                    y = b.get_state_as_2d_list()
+                    print(y)
+                    y=np.flip(y)
+                    draw_board(y)
+                    pygame.display.update()
+    b.state = Minimax(b.state)
 
-                                draw_board(screen, board)
-                                board.print_board()
-                                break
+    turn = 'r'
+    y = b.get_state_as_2d_list()
+    print(y)
+    y = np.flip(y)
+    draw_board(y)
+    pygame.display.update()
 
-            # AI's turn
-            if turn == 1 and not game_over:
-                col = ai.get_move(board)
-                if board.is_valid_location(col):
-                    for r in range(ROW_COUNT):
-                        if board.board[ROW_COUNT - 1 - r][col] == 0:
-                            board.board[ROW_COUNT - 1 - r][col] = 2
+    print(calculate_score(b.get_state_as_2d_list(),'r'))
 
-                            if board.is_draw() or turn == ROW_COUNT * COLUMN_COUNT - 1:
-                                label = myfont.render("Draw!", 1, BLACK)
-                                screen.blit(label, (40, 10))
-                                game_over = True
+    print(calculate_score(b.get_state_as_2d_list(),'y'))
 
-                            draw_board(screen, board)
-                            board.print_board()
+if num=="3":
+    while count<=20:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            if event.type == pygame.MOUSEMOTION:
+                pygame.draw.rect(screen, (0, 0, 0), (0, 0, width, squaresize))
+                if turn == 'r':
+                    posx = event.pos[0]
 
-                            turn += 1
-                            turn = turn % 2
-                            break
+                    pygame.draw.circle(screen, (255, 0, 0), (posx + squaresize / 2, squaresize / 2),
+                                       radius=(squaresize / 2 - 5))
 
-        if game_over:
-            # Game over, determine the winner based on heuristic score
-            player1_score = board.get_heuristic_score(1)
-            player2_score = board.get_heuristic_score(2)
+                if turn == 'y':
+                    posx = event.pos[0]
 
-            if player1_score > player2_score:
-                label = myfont.render("Player 1 Wins!", 1, BLUE)
-            elif player1_score < player2_score:
-                label = myfont.render("Player 2 Wins!", 1, BLUE)
-            else:
-                label = myfont.render("Draw!", 1, BLUE)
+                    pygame.draw.circle(screen, (255, 255, 0), (posx + squaresize / 2, squaresize / 2),
+                                       radius=(squaresize / 2 - 5))
+                pygame.display.update()
 
-            screen.blit(label, (40, 10))
-            pygame.display.update()
-            pygame.time.wait(3000)
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                    print(event.pos)
+                    if turn == 'r':
+                        posx = event.pos[0]
+                        col = 6-int(round(posx / squaresize))
+                        print(col)
+                        if not b.insert_disc(turn, col):
+                            turn = 'r'
+                        else:
+                            turn = 'y'
+                            count+=1
+                        y = b.get_state_as_2d_list()
+                        print(y)
+                        y = np.flip(y)
+                        draw_board(y)
+                        pygame.display.update()
+            elif turn == 'y':
 
+                    b.state=get_next_move('r','y',b.state)
 
+                    turn='r'
+                    y = b.get_state_as_2d_list()
+                    print(y)
+                    y=np.flip(y)
+                    draw_board(y)
+                    pygame.display.update()
 
-if __name__ == '__main__':
-    main()
