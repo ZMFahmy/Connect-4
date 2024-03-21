@@ -20,11 +20,6 @@ class Connect4:
     def is_valid_location(self, col):
         return self.board[0][col] == 0
 
-  #  def is_winner(self, player):
-        #the winner is determined by the heuristic score,
-        # so the is_winner function is not used.
-   #     return False
-
     def is_draw(self):
         return np.all(self.board != 0)
 
@@ -32,7 +27,7 @@ class Connect4:
         return [col for col in range(self.width) if self.is_valid_location(col)]
 
     def print_board(self):
-        print(np.flip(self.board, 0))
+        print(self.board)
 
     def copy(self):
         copy_board = Connect4(self.width, self.height)
